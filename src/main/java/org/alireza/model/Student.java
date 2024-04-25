@@ -40,4 +40,8 @@ public class Student extends BaseEntity<Long> {
     CascadeType.DETACH, CascadeType.REMOVE})
     private Spouse spouse;
 
+    @OneToMany(mappedBy = "student", cascade = {CascadeType.PERSIST,
+    CascadeType.MERGE, CascadeType.DETACH, CascadeType.REMOVE})
+    private BankCard bankCard;
+
 }
