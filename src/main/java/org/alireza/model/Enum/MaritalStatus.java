@@ -1,4 +1,4 @@
-package org.alireza.model;
+package org.alireza.model.Enum;
 
 public enum MaritalStatus {
 

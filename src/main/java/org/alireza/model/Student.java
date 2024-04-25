@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.alireza.base.entity.BaseEntity;
+import org.alireza.model.Enum.EducationLevel;
+import org.alireza.model.Enum.Gender;
+import org.alireza.model.Enum.MaritalStatus;
 
 import java.util.Date;
 
@@ -26,7 +29,7 @@ public class Student extends BaseEntity<Long> {
     private Date birthDate;
     private String studentCode;
     private int EntryYear;
-    private educationLevel educationLevel;
+    private EducationLevel educationLevel;
     private MaritalStatus maritalStatus;
     private boolean dormitoryResident;
     private Gender gender;

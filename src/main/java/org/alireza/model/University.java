@@ -9,8 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.alireza.base.entity.BaseEntity;
+import org.alireza.model.Enum.UniversityType;
 
-import java.security.PrivateKey;
 import java.util.List;
 
 @AllArgsConstructor
