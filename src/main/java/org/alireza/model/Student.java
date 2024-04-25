@@ -1,8 +1,6 @@
 package org.alireza.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,5 +32,12 @@ public class Student extends BaseEntity<Long> {
     private Gender gender;
     private int contractNumber;
     private String address;
+
+    @ManyToOne
+    private University university;
+
+    @OneToOne(mappedBy = "student", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+    CascadeType.DETACH, CascadeType.REMOVE})
+    private Spouse spouse;
 
 }

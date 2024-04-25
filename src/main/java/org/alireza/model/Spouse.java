@@ -1,6 +1,7 @@
 package org.alireza.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,4 +25,7 @@ public class Spouse extends BaseEntity<Long> {
     private String motherName;
     private String codeMelli;
     private Date birthDate;
+
+    @OneToOne
+    private Student student;
 }
