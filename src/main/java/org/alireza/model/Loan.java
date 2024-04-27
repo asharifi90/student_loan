@@ -10,6 +10,8 @@ import org.alireza.model.Enum.EducationLevel;
 import org.alireza.model.Enum.LoanType;
 import org.alireza.model.Enum.PaymentMethod;
 
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -31,4 +33,8 @@ public class Loan extends BaseEntity<Long> {
 
     @ManyToOne
     private Student student;
+
+    @OneToMany(mappedBy = "loan", cascade = {CascadeType.PERSIST,
+    CascadeType.MERGE, CascadeType.DETACH, CascadeType.REMOVE})
+    private List<LoanInstallment> loanInstallments;
 }
