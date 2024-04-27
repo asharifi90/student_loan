@@ -1,4 +1,7 @@
 package org.alireza.service.loanInstallment;
 
-public interface LoanInstallmentService {
+import org.alireza.base.service.BaseService;
+import org.alireza.model.LoanInstallment;
+
+public interface LoanInstallmentService extends BaseService<LoanInstallment, Long> {
 }

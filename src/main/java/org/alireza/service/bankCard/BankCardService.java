@@ -1,4 +1,7 @@
 package org.alireza.service.bankCard;
 
-public interface BankCardService {
+import org.alireza.base.service.BaseService;
+import org.alireza.model.BankCard;
+
+public interface BankCardService extends BaseService<BankCard, Long> {
 }

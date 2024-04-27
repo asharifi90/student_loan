@@ -1,6 +1,6 @@
 package org.alireza.connection;
 
-import org.alireza.model.Student;
+import org.alireza.model.*;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -20,6 +20,11 @@ public class SessionFactorySingleton {
 
             INSTANCE = new MetadataSources(registry)
                     .addAnnotatedClass(Student.class)
+                    .addAnnotatedClass(BankCard.class)
+                    .addAnnotatedClass(Loan.class)
+                    .addAnnotatedClass(University.class)
+                    .addAnnotatedClass(LoanInstallment.class)
+                    .addAnnotatedClass(Spouse.class)
                     .buildMetadata()
                     .buildSessionFactory();
         }

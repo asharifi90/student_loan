@@ -1,4 +1,7 @@
 package org.alireza.service.student;
 
-public interface StudentService {
+import org.alireza.base.service.BaseService;
+import org.alireza.model.Student;
+
+public interface StudentService extends BaseService<Student, Long> {
 }
