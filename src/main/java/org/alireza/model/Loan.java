@@ -1,9 +1,6 @@
 package org.alireza.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,4 +28,7 @@ public class Loan extends BaseEntity<Long> {
 
     @Enumerated(EnumType.STRING)
     private LoanType loanType;
+
+    @ManyToOne
+    private Student student;
 }
