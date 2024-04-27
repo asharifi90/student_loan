@@ -19,9 +19,9 @@ import java.time.LocalDate;
 @Table(name = "BankCard")
 public class BankCard extends BaseEntity<Long> {
 
-    private String bankName;
-    private int cardNumber; //(Store just the last 4 numbers of card)
+    private int cardNumber;
     private LocalDate expiryDate;
+    private int CVV2;
 
     @ManyToOne
     private Student student;
