@@ -10,7 +10,9 @@ import org.alireza.model.Enum.EducationLevel;
 import org.alireza.model.Enum.Gender;
 import org.alireza.model.Enum.MaritalStatus;
 
+import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -26,12 +28,18 @@ public class Student extends BaseEntity<Long> {
     private String motherName;
     private String shomareShenasname;
     private String codeMelli;
-    private Date birthDate;
+    private LocalDate birthDate;
     private String studentCode;
     private int EntryYear;
+
+    @Enumerated(EnumType.STRING)
     private EducationLevel educationLevel;
+
+    @Enumerated(EnumType.STRING)
     private MaritalStatus maritalStatus;
     private boolean dormitoryResident;
+
+    @Enumerated(EnumType.STRING)
     private Gender gender;
     private int contractNumber;
     private String address;
@@ -45,6 +53,6 @@ public class Student extends BaseEntity<Long> {
 
     @OneToMany(mappedBy = "student", cascade = {CascadeType.PERSIST,
     CascadeType.MERGE, CascadeType.DETACH, CascadeType.REMOVE})
-    private BankCard bankCard;
+    private List<BankCard> bankCard;
 
 }

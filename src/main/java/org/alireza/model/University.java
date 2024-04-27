@@ -1,9 +1,6 @@
 package org.alireza.model;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +20,8 @@ public class University extends BaseEntity<Long> {
 
     private String name;
     private String city;
+
+    @Enumerated(EnumType.STRING)
     private UniversityType universityType;
 
     @OneToMany(mappedBy = "university", cascade = {CascadeType.PERSIST,

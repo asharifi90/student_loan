@@ -1,6 +1,8 @@
 package org.alireza.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,9 +21,14 @@ import org.alireza.model.Enum.PaymentMethod;
 @Table(name = "Loan")
 public class Loan extends BaseEntity<Long> {
 
+    @Enumerated(EnumType.STRING)
     private EducationLevel educationLevel;
     private int price;
+
+    @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
     private String city;
+
+    @Enumerated(EnumType.STRING)
     private LoanType loanType;
 }
