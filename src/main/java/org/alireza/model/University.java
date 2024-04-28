@@ -1,17 +1,14 @@
 package org.alireza.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.alireza.base.entity.BaseEntity;
 import org.alireza.model.Enum.UniversityType;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
 @Entity
@@ -25,6 +22,32 @@ public class University extends BaseEntity<Long> {
     private UniversityType universityType;
 
     @OneToMany(mappedBy = "university", cascade = {CascadeType.PERSIST,
-    CascadeType.MERGE, CascadeType.DETACH})
+            CascadeType.MERGE, CascadeType.DETACH})
     private List<Student> student;
+
+    public University(Long aLong, String name, String city, UniversityType universityType) {
+        super(aLong);
+        this.name = name;
+        this.city = city;
+        this.universityType = universityType;
+        this.student = new ArrayList<>();
+    }
+
+    public University(String name, String city, UniversityType universityType) {
+        this.name = name;
+        this.city = city;
+        this.universityType = universityType;
+        this.student = new ArrayList<>();
+    }
+
+    public University() {
+    }
+
+
+    public String toString() {
+        return "University(name=" + this.getName() +
+                ", city=" + this.getCity() +
+                ", universityType=" + this.getUniversityType() ;
+//                ", student=" + this.getStudent() + ")";
+    }
 }

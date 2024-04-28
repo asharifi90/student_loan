@@ -1,11 +1,21 @@
 package org.alireza.model;
 
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.alireza.base.entity.BaseEntity;
 
 import java.time.LocalDate;
 
+@Getter
+@Setter
+@ToString
+@Entity
+@Table(name = "LoanInstallment")
 public class LoanInstallment extends BaseEntity<Long> {
 
     @ManyToOne
@@ -13,5 +23,22 @@ public class LoanInstallment extends BaseEntity<Long> {
     private LocalDate installmentDate;
     private double price;
     private boolean paid;
-    private boolean notPaid;
+
+    public LoanInstallment(Long aLong, Loan loan, LocalDate installmentDate, double price, boolean paid) {
+        super(aLong);
+        this.loan = loan;
+        this.installmentDate = installmentDate;
+        this.price = price;
+        this.paid = paid;
+    }
+
+    public LoanInstallment(Loan loan, LocalDate installmentDate, double price, boolean paid) {
+        this.loan = loan;
+        this.installmentDate = installmentDate;
+        this.price = price;
+        this.paid = paid;
+    }
+
+    public LoanInstallment() {
+    }
 }
