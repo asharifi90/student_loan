@@ -22,8 +22,6 @@ public class PasswordGen {
 
         PasswordGenerator passGen = new PasswordGenerator();
 
-        String password = passGen.generatePassword(8, SR, LCR, UCR, DR);
-
-        return password;
+        return passGen.generatePassword(8, SR, LCR, UCR, DR);
     }
 }
