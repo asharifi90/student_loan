@@ -35,6 +35,7 @@ public class Student extends BaseEntity<Long> {
 
     @Enumerated(EnumType.STRING)
     private MaritalStatus maritalStatus;
+
     private boolean dormitoryResident;
 
     @Enumerated(EnumType.STRING)
