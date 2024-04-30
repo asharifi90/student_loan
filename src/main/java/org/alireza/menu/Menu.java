@@ -17,30 +17,19 @@ public class Menu {
 
         int userChoice = 0;
 
-        while (true) {
-            if (userChoice == 2)
-                break;
-            else
+        System.out.println("====Student Loan System=====");
+        System.out.println("What do you want to do? ");
+        System.out.println("1. register");
+        System.out.println("2. EXIT");
 
-                System.out.println("====Student Loan System=====");
-            System.out.println("What do you want to do? ");
-            System.out.println("1. register");
-            System.out.println("2. EXIT");
+        userChoice = getValidNumber(2);
 
-            while (!scanner.hasNextInt()) {
-                System.out.println("please enter number 1 or 2");
-                scanner.nextLine();
-            }
-
-            userChoice = scanner.nextInt();
-            scanner.nextLine();
-
-            switch (userChoice) {
-                case 1 -> studentRegister();
-                case 2 -> System.out.println("good luck");
-                default -> System.out.println("invalid number");
-            }
+        switch (userChoice) {
+            case 1 -> studentRegister();
+            case 2 -> System.out.println("good luck");
+            default -> System.out.println("invalid number");
         }
+
 
     }
 
@@ -52,58 +41,74 @@ public class Menu {
 
         String firstname = getInformation("firstname");
         student.setFirstname(firstname);
+        System.out.println();
 
         String lastname = getInformation("lastname");
         student.setLastname(lastname);
+        System.out.println();
 
         String fatherName = getInformation("fatherName");
         student.setFatherName(fatherName);
+        System.out.println();
 
         String motherName = getInformation("motherName");
         student.setMotherName(motherName);
+        System.out.println();
 
         String password = PasswordGen.generateSecurePassword();
         student.setPassword(password);
+        System.out.println();
 
         String shomareShenasname = getValidCodeMelli("shomare shenasname");
         student.setShomareShenasname(shomareShenasname);
+        System.out.println();
 
         String codeMelli = getValidCodeMelli(" code melli");
         student.setCodeMelli(codeMelli);
+        System.out.println();
 
         String studentCode = getValidStudentCode();
         student.setStudentCode(studentCode);
+        System.out.println();
 
         int entryYear = getValidEntryYear();
         student.setEntryYear(entryYear);
+        System.out.println();
 
         LocalDate birthDate = getBirthDate();
         student.setBirthDate(birthDate);
+        System.out.println();
 
         EducationLevel educationLevel = getEducationLevel();
         student.setEducationLevel(educationLevel);
+        System.out.println();
 
         MaritalStatus maritalStatus = getMaritalStatus();
         student.setMaritalStatus(maritalStatus);
+        System.out.println();
 
         boolean isDormitoryResident = isDormitoryResident();
         student.setDormitoryResident(isDormitoryResident);
+        System.out.println();
 
         City city = getCity();
         student.setCity(city);
+        System.out.println();
 
         String universityName = getInformation("university name");
         university.setName(universityName);
+        System.out.println();
 
         City city1 = getUniversityCity();
         university.setCity(city);
+        System.out.println();
 
         UniversityType universityType = getUnivesityType();
         university.setUniversityType(universityType);
+        System.out.println();
 
         student.setUniversity(university);
-
-
+        System.out.println();
 
 
     }
@@ -140,7 +145,7 @@ public class Menu {
     }
 
 
-    public int getValidNumber(int numberOfChoice) {
+    private int getValidNumber(int numberOfChoice) {
         int number = 0;
         do {
             System.out.print("Enter a number: ");
