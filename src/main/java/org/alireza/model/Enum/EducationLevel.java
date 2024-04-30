@@ -8,9 +8,7 @@ public enum EducationLevel {
 
     KARSHENASI_ARSHAD,
 
-    DOCTORA_HERFEEI,
-
-    DOCTORA_PEIVASTE,
+    DOCTORA_HERFEEI_VA_PEIVASTE,
 
     DOCTORA_NAPEIVASTE,
 }
