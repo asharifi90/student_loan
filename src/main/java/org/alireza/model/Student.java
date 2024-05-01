@@ -115,6 +115,7 @@ public class Student extends BaseEntity<Long> {
                 + ", lastname=" + this.getLastname()
                 + ", fatherName=" + this.getFatherName()
                 + ", motherName=" + this.getMotherName()
+                + ", password=" +this.getPassword()
                 + ", shomareShenasname=" + this.getShomareShenasname()
                 + ", codeMelli=" + this.getCodeMelli()
                 + ", birthDate=" + this.getBirthDate()
