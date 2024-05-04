@@ -24,9 +24,15 @@ public class Student extends BaseEntity<Long> {
     private String fatherName;
     private String motherName;
     private String password;
+
+    @Column(unique = true, nullable = false)
     private String shomareShenasname;
+
+    @Column(unique = true, nullable = false)
     private String codeMelli;
     private LocalDate birthDate;
+
+    @Column(unique = true, nullable = false)
     private String studentCode;
     private int EntryYear;
 
