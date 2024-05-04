@@ -10,6 +10,7 @@ import org.alireza.model.Enum.EducationLevel;
 import org.alireza.model.Enum.LoanType;
 import org.alireza.model.Enum.PaymentMethod;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class Loan extends BaseEntity<Long> {
     @Enumerated(EnumType.STRING)
     private EducationLevel educationLevel;
     private Long price;
+    private LocalDate loanDate;
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
