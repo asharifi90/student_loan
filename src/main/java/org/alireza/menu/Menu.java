@@ -1,12 +1,16 @@
 package org.alireza.menu;
 
+import com.github.mfathi91.time.PersianDate;
+import org.alireza.model.*;
 import org.alireza.model.Enum.*;
-import org.alireza.model.Student;
-import org.alireza.model.University;
+import org.alireza.util.ApplicationContext;
 import org.alireza.util.PasswordGen;
 import org.alireza.util.Validation;
+import org.hibernate.event.spi.SaveOrUpdateEvent;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class Menu {
@@ -20,20 +24,27 @@ public class Menu {
         System.out.println("====Student Loan System=====");
         System.out.println("What do you want to do? ");
         System.out.println("1. register");
+        System.out.println("2. Get a loan");
         System.out.println("2. EXIT");
 
-        userChoice = getValidNumber(2);
+        userChoice = getValidNumber(3);
 
         switch (userChoice) {
             case 1 -> studentRegister();
-            case 2 -> System.out.println("good luck");
+            case 2 -> getLoan();
+            case 3 -> refundLoan();
+            case 4 -> System.out.println("good luck");
             default -> System.out.println("invalid number");
         }
 
 
     }
 
-    public void studentRegister() {
+    private void refundLoan(){
+
+    }
+
+    private void studentRegister() {
 
         Student student = new Student();
 
@@ -110,7 +121,354 @@ public class Menu {
         student.setUniversity(university);
         System.out.println();
 
+        try {
+            ApplicationContext.getStudentService().saveOrUpdate(student);
+            System.out.println("your registry is completed \n " +
+                    "your username is your code melli\n" +
+                    "and your password is " + student.getPassword());
+        } catch (Exception e) {
+            System.out.println("something went wrong, please try again");
+        }
 
+    }
+
+    public void studentSignIn() {
+
+        System.out.println("Please enter your code melli:");
+        String codeMelli = scanner.nextLine().trim();
+
+        while (true) {
+            if (!codeMelli.isEmpty()) {
+                break;
+            } else {
+                System.out.println("codeMelli cant be blank, enter again");
+                codeMelli = scanner.nextLine().trim();
+            }
+        }
+
+        System.out.println("Please enter your passwprd: ");
+        String password = scanner.nextLine().trim();
+
+        while (true) {
+            if (!password.isEmpty()) {
+                break;
+            } else {
+                System.out.println("password cant be blank, enter again");
+                password = scanner.nextLine().trim();
+            }
+        }
+
+        Student student = ApplicationContext.getStudentService().signIn(codeMelli, password);
+
+        if (student != null) {
+            SecurityContext.id = student.getId();
+            SecurityContext.username = student.getCodeMelli();
+            getLoan();
+        } else {
+            System.out.println("codeMelli or password is not correct, enter again");
+        }
+    }
+
+    private void getLoan() {
+
+        int userChoice = 0;
+
+        System.out.println("Select a loan: ");
+        System.out.println("1. Tuition loan");
+        System.out.println("2. Education loan");
+        System.out.println("3. Housing loan");
+        System.out.println("4. EXIT");
+
+        userChoice = getValidNumber(4);
+
+        switch (userChoice) {
+            case 1 -> getTuitionLoan();
+            case 2 -> getEdutionLoan();
+            case 3 -> getHousingLoan();
+            case 4 -> System.out.println("good luck");
+            default -> System.out.println("invalid number");
+        }
+    }
+
+    public void getTuitionLoan() {
+
+        Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
+        long loanPrice = 0;
+        BankCard bankCard;
+
+        if (student.getUniversity().getUniversityType().equals(UniversityType.DOWLATI_ROOZANEH)) {
+            System.out.println("You can't get tuition loan, because your university is dowlati roozaneh");
+        } else {
+            loanPrice = loanPriceForStudent(student.getEducationLevel(), LoanType.TUITION_LOAN);
+            bankCard = getBankCardInformation();
+            if(bankCard == null){
+                System.out.println("Please enter a valid bank card");
+            }else{
+                bankCard.setStudent(student);
+                bankCard.setBalance(loanPrice);
+                ApplicationContext.getBankCardService().saveOrUpdate(bankCard);
+                Loan tuitionLoan = new Loan(student.getEducationLevel(),loanPrice,PaymentMethod.ONCE_PER_TERM,null,LoanType.TUITION_LOAN,student);
+                ApplicationContext.getLoanService().saveOrUpdate(tuitionLoan);
+                System.out.println("your loan is paid");
+            }
+        }
+    }
+
+    private void getEdutionLoan() {
+
+        Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
+        long loanPrice = 0;
+        BankCard bankCard;
+
+
+
+    }
+
+    private void getHousingLoan() {
+
+    }
+
+    private long loanPriceForStudent(EducationLevel educationLevel, LoanType loanType) {
+        long loanPrice = 0;
+
+        if (loanType == LoanType.EDUCATION_LOAN) {
+            switch (educationLevel) {
+                case KARDANI, KARSHENASI -> loanPrice = 1900000;
+                case KARSHENASI_ARSHAD, DOCTORA_HERFEEI_VA_PEIVASTE -> loanPrice = 2250000;
+                case DOCTORA_NAPEIVASTE -> loanPrice = 2600000;
+            }
+        }
+
+        if (loanType == LoanType.TUITION_LOAN) {
+            switch (educationLevel) {
+                case KARDANI, KARSHENASI -> loanPrice = 1300000;
+                case KARSHENASI_ARSHAD, DOCTORA_HERFEEI_VA_PEIVASTE -> loanPrice = 2600000;
+                case DOCTORA_NAPEIVASTE -> loanPrice = 6500000;
+            }
+        }
+        return loanPrice;
+    }
+
+    private long housingLoanPriceForStudent(City city) {
+        long loanPrice = 0;
+
+        switch (city) {
+            case TEHRAN -> loanPrice = 32000000;
+            case KALANSHAHR -> loanPrice = 26000000;
+            case SAYER -> loanPrice = 19500000;
+        }
+        return loanPrice;
+    }
+
+
+    public BankCard getBankCardInformation() {
+
+        long cardNumber;
+        String bankName;
+        int CVV2 = 0;
+        LocalDate cardExpiryDate = null;
+        BankCard bankCard = null;
+
+        System.out.println("Please enter a card number from Melli, Tejarat, Refah and maskan banks");
+        cardNumber = getValidCardNumber();
+        bankName = getBankName(cardNumber);
+
+        if (bankName ==null){
+            System.out.println("your bank is not acceptable");
+        }else {
+            System.out.println("Your bank is " + bankName);
+            cardExpiryDate = getValidExpiryDate();
+            if (cardExpiryDate == null){
+                System.out.println("your card date is not valid");
+            }else {
+                do {
+                    System.out.println("Enter CVV2 number : ");
+                    String input = scanner.nextLine();
+
+                    if (input.length() != 3 || !input.matches("[0-9]+")) {
+                        System.out.println("Invalid input. Please enter a 3 digit number.");
+                        continue;
+                    }
+
+                    try {
+                        CVV2 = Integer.parseInt(input);
+                        break;
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid input. Please enter a valid number.");
+                    }
+                } while (true);
+
+                bankCard = new BankCard(bankName, cardNumber, cardExpiryDate, CVV2);
+            }
+        }
+
+        return bankCard;
+    }
+
+    private LocalDate getValidExpiryDate() {
+
+        int month = 0;
+        int year = 0;
+        PersianDate persianDate;
+        long julianDay;
+        LocalDate localDate = null;
+
+
+        System.out.println("Enter expiry date (YYYY/MM): ");
+        String expiryString = scanner.nextLine();
+
+            try {
+                String[] parts = expiryString.split("/");
+                year = Integer.parseInt(parts[0]);
+                month = Integer.parseInt(parts[1]);
+                if (month < 4 || month > 12 || year < 1403 || year > 1413) {
+                    System.out.println("Invalid date, the expiry date must be after 1403/03");
+                }else {
+                    persianDate = PersianDate.of(year, month, 1);
+                    julianDay = persianDate.toEpochDay();
+                    localDate = LocalDate.ofEpochDay(julianDay);
+                }
+            } catch (Exception e) {
+                System.out.println("Invalid expiry date format. Please enter YYYY/MM.");
+                expiryString = scanner.nextLine();
+            }
+        return localDate;
+    }
+
+
+    private long getValidCardNumber() {
+
+        String input = "";
+        long cardNumber;
+
+        do {
+            System.out.println("Enter bank card number (16 digits): ");
+            input = scanner.nextLine();
+
+            if (input.length() != 16 || !input.matches("[0-9]+")) {
+                System.out.println("Invalid input. Please enter a 16 digit number.");
+                continue;
+            }
+
+            try {
+                cardNumber = Long.parseLong(input);
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+            }
+        } while (true);
+
+        return cardNumber;
+    }
+
+    private String getBankName(long cardNumber) {
+
+        String number = String.valueOf(cardNumber);
+        String bin = number.substring(0, 6);
+        String bankName = null;
+
+        switch (bin) {
+            case "603799" -> bankName = "Melli";
+            case "628023" -> bankName = "Maskan";
+            case "589463" -> bankName = "Refah";
+            case "627353" -> bankName = "Tejarat";
+        }
+
+        return bankName;
+    }
+
+    private double calFirstYearBaseInstallment(long loanPrice){
+
+        return (double) ((loanPrice/31)/12);
+    }
+
+    private double calFirstYearProfit(long loanPrice){
+
+        return (loanPrice * 0.04)/12;
+    }
+
+    private double calFirstYearInstallment(long loanPrice){
+
+        return calFirstYearBaseInstallment(loanPrice) + calFirstYearProfit(loanPrice);
+    }
+
+    private double calSecondYearBaseInstallment(long loanPrice){
+
+        long baseLoanInstallment = loanPrice/31;
+        return (double) (baseLoanInstallment * 2) /12;
+    }
+
+    private double calSecondYearProfit(long loanPrice){
+
+        double firstYearBaseInstallment = calFirstYearBaseInstallment(loanPrice);
+        double remainingLoan = loanPrice - (firstYearBaseInstallment *12);
+        return (remainingLoan * 0.04)/12;
+    }
+
+    private double calSecondYearInstallment(long loanPrice){
+
+        return calSecondYearBaseInstallment(loanPrice) + calSecondYearProfit(loanPrice);
+    }
+
+    private double calThirdYearBaseInstallment(long loanPrice){
+
+        long baseLoanInstallment = loanPrice/31;
+        return (double) (baseLoanInstallment * 4) /12;
+    }
+
+    private double calThirdYearProfit(long loanPrice){
+
+        double firstYearBaseInstallment = calFirstYearBaseInstallment(loanPrice);
+        double secondYearBaseInstallment = calSecondYearBaseInstallment(loanPrice);
+        double remainingLoan = loanPrice - ((firstYearBaseInstallment *12) + (secondYearBaseInstallment*12));
+        return (remainingLoan * 0.04)/12;
+    }
+
+    private double calThirdYearInstallment(long loanPrice){
+
+        return calThirdYearBaseInstallment(loanPrice) + calThirdYearProfit(loanPrice);
+    }
+
+    private double calForthYearBaseInstallment(long loanPrice){
+
+        long baseLoanInstallment = loanPrice/31;
+        return (double) (baseLoanInstallment * 8) /12;
+    }
+
+    private double calForthYearProfit(long loanPrice){
+
+        double firstYearBaseInstallment = calFirstYearBaseInstallment(loanPrice);
+        double secondYearBaseInstallment = calSecondYearBaseInstallment(loanPrice);
+        double thirdYearBaseInstallment = calThirdYearBaseInstallment(loanPrice);
+        double remainingLoan = loanPrice - ((firstYearBaseInstallment *12) + (secondYearBaseInstallment*12)
+        + (thirdYearBaseInstallment*12));
+        return (remainingLoan * 0.04)/12;
+    }
+
+    private double calForthYearInstallment(long loanPrice){
+
+        return calForthYearBaseInstallment(loanPrice) + calForthYearProfit(loanPrice);
+    }
+
+    private double calFifthYearBaseInstallment(long loanPrice){
+
+        long baseLoanInstallment = loanPrice/31;
+        return (double) (baseLoanInstallment * 16) /12;
+    }
+
+    private double calFifthYearProfit(long loanPrice){
+
+        double firstYearBaseInstallment = calFirstYearBaseInstallment(loanPrice);
+        double secondYearBaseInstallment = calSecondYearBaseInstallment(loanPrice);
+        double thirdYearBaseInstallment = calThirdYearBaseInstallment(loanPrice);
+        double forthYearBaseInstallment = calForthYearBaseInstallment(loanPrice);
+        double remainingLoan = loanPrice - ((firstYearBaseInstallment *12) + (secondYearBaseInstallment*12)
+                + (thirdYearBaseInstallment*12) + (forthYearBaseInstallment *12));
+        return (remainingLoan * 0.04)/12;
+    }
+
+    private double calFifthYearInstallment(long loanPrice){
+        return calFifthYearBaseInstallment(loanPrice) + calFifthYearProfit(loanPrice);
     }
 
     private UniversityType getUnivesityType() {
