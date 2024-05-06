@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.alireza.base.entity.BaseEntity;
+import org.alireza.model.Enum.City;
 import org.alireza.model.Enum.EducationLevel;
 import org.alireza.model.Enum.LoanType;
 import org.alireza.model.Enum.PaymentMethod;
@@ -29,7 +30,7 @@ public class Loan extends BaseEntity<Long> {
 
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
-    private String city;
+    private City city;
 
     @Enumerated(EnumType.STRING)
     private LoanType loanType;
@@ -41,7 +42,7 @@ public class Loan extends BaseEntity<Long> {
             CascadeType.MERGE, CascadeType.DETACH, CascadeType.REMOVE})
     private List<LoanInstallment> loanInstallments;
 
-    public Loan(Long aLong, EducationLevel educationLevel, Long price, PaymentMethod paymentMethod, String city, LoanType loanType, Student student) {
+    public Loan(Long aLong, EducationLevel educationLevel, Long price, PaymentMethod paymentMethod, City city, LoanType loanType, Student student) {
         super(aLong);
         this.educationLevel = educationLevel;
         this.price = price;
@@ -52,7 +53,7 @@ public class Loan extends BaseEntity<Long> {
         this.loanInstallments = new ArrayList<>();
     }
 
-    public Loan(EducationLevel educationLevel, Long price, PaymentMethod paymentMethod, String city, LoanType loanType, Student student) {
+    public Loan(EducationLevel educationLevel, Long price, PaymentMethod paymentMethod, City city, LoanType loanType, Student student) {
         this.educationLevel = educationLevel;
         this.price = price;
         this.paymentMethod = paymentMethod;
