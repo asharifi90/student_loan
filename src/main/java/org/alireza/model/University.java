@@ -17,6 +17,8 @@ import java.util.List;
 public class University extends BaseEntity<Long> {
 
     private String name;
+
+    @Enumerated(EnumType.STRING)
     private City city;
 
     @Enumerated(EnumType.STRING)
