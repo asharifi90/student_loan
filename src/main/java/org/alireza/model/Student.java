@@ -44,6 +44,8 @@ public class Student extends BaseEntity<Long> {
 
     private boolean dormitoryResident;
 
+    private boolean isGraduate;
+
     @Enumerated(EnumType.STRING)
     private Gender gender;
     private int contractNumber;
@@ -89,6 +91,11 @@ public class Student extends BaseEntity<Long> {
         this.loan = new ArrayList<>();
     }
 
+
+    public Student(String firstname, String lastname) {
+        this.firstname = firstname;
+        this.lastname = lastname;
+    }
 
     public Student(String firstname, String lastname, String fatherName, String motherName, String password, String shomareShenasname, String codeMelli, LocalDate birthDate, String studentCode, int EntryYear, EducationLevel educationLevel, MaritalStatus maritalStatus, boolean dormitoryResident, Gender gender, int contractNumber, City city, University university, Spouse spouse) {
         this.firstname = firstname;
