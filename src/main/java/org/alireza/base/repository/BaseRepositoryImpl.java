@@ -15,7 +15,7 @@ import java.util.Queue;
 public abstract class BaseRepositoryImpl <T extends BaseEntity<ID>, ID extends Serializable>
 implements BaseRepository<T, ID>{
 
-    private SessionFactory sessionFactory;
+    protected SessionFactory sessionFactory;
 
 
     @Override
