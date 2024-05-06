@@ -89,7 +89,7 @@ public class Menu {
         student.setEntryYear(entryYear);
         System.out.println();
 
-        LocalDate birthDate = getBirthDate();
+        LocalDate birthDate = getBirthDate("birthDate");
         student.setBirthDate(birthDate);
         System.out.println();
 
@@ -123,7 +123,7 @@ public class Menu {
 
         try {
             ApplicationContext.getUniversityService().saveOrUpdate(university);
-        }catch (Exception e){
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
 
@@ -310,9 +310,13 @@ public class Menu {
         LocalDate endDateWinterSemester = LocalDate.of(2024, 2, 21);
 
         if (loanHistory != null) {
-            System.out.println("you can get Housing loan only once per semester");
+            System.out.println("you can get Housing loan only once per level");
+        } else if (!student.isDormitoryResident()) {
+            System.out.println("You dont live in dormitory, so you are not eligible to get housing loan");
+        } else if (student.getSpouse() == null) {
+            System.out.println("you are not married, so you are not eligible to get housing loan");
         } else {
-            loanPrice = loanPriceForStudent(student.getEducationLevel(), LoanType.EDUCATION_LOAN);
+            loanPrice = housingLoanPriceForStudent(student.getCity());
             bankCard = getBankCardInformation();
             if (bankCard == null) {
                 System.out.println("Please enter a valid bank card");
@@ -320,30 +324,50 @@ public class Menu {
                 bankCard.setStudent(student);
                 bankCard.setBalance(loanPrice);
                 ApplicationContext.getBankCardService().saveOrUpdate(bankCard);
-                Loan educationLoan = new Loan(student.getEducationLevel(), loanPrice, PaymentMethod.ONCE_PER_TERM, null, LoanType.EDUCATION_LOAN, student);
-                ApplicationContext.getLoanService().saveOrUpdate(educationLoan);
-                loanInstallmentsFirstYear(educationLoan);
-                loanInstallmentsSecondYear(educationLoan);
-                loanInstallmentsThirdYear(educationLoan);
-                loanInstallmentsForthYear(educationLoan);
-                loanInstallmentsFifthYear(educationLoan);
+                Loan housingLoan = new Loan(student.getEducationLevel(), loanPrice, PaymentMethod.ONCE_PER_LEVEL, student.getCity(), LoanType.HOUSING_LOAN, student);
+                ApplicationContext.getLoanService().saveOrUpdate(housingLoan);
+                loanInstallmentsFirstYear(housingLoan);
+                loanInstallmentsSecondYear(housingLoan);
+                loanInstallmentsThirdYear(housingLoan);
+                loanInstallmentsForthYear(housingLoan);
+                loanInstallmentsFifthYear(housingLoan);
                 System.out.println("your loan is paid, you can check your loan installments in your dashboard");
             } else {
                 BankCard savedBankCard = ApplicationContext.getBankCardService().findByNumber(bankCard.getCardNumber());
                 long newBalance = savedBankCard.getBalance() + loanPrice;
                 savedBankCard.setBalance(newBalance);
                 ApplicationContext.getBankCardService().saveOrUpdate(savedBankCard);
-                Loan educationLoan = new Loan(student.getEducationLevel(), loanPrice, PaymentMethod.ONCE_PER_TERM, null, LoanType.TUITION_LOAN, student);
-                ApplicationContext.getLoanService().saveOrUpdate(educationLoan);
-                loanInstallmentsFirstYear(educationLoan);
-                loanInstallmentsSecondYear(educationLoan);
-                loanInstallmentsThirdYear(educationLoan);
-                loanInstallmentsForthYear(educationLoan);
-                loanInstallmentsFifthYear(educationLoan);
+                Loan housingLoan = new Loan(student.getEducationLevel(), loanPrice, PaymentMethod.ONCE_PER_LEVEL, student.getCity(), LoanType.HOUSING_LOAN, student);
+                ApplicationContext.getLoanService().saveOrUpdate(housingLoan);
+                loanInstallmentsFirstYear(housingLoan);
+                loanInstallmentsSecondYear(housingLoan);
+                loanInstallmentsThirdYear(housingLoan);
+                loanInstallmentsForthYear(housingLoan);
+                loanInstallmentsFifthYear(housingLoan);
                 System.out.println("your loan is paid, you can check your loan installments in your dashboard");
             }
         }
     }
+
+    public void getSpouseInformation() {
+        Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
+
+        String firstname = getInformation("your spouse firstname");
+        String lastname = getInformation("your spouse lastname");
+        String fatherName = getInformation("ِyour spouse father name");
+        String motherName = getInformation("your spouse mother name");
+        String codeMelli = getValidCodeMelli("your spouse national id");
+        LocalDate birthDate = getBirthDate("spouse birtDate");
+
+        Spouse spouse = new Spouse(firstname, lastname, fatherName, motherName, codeMelli, birthDate, student);
+        try {
+            ApplicationContext.getSpouseService().saveOrUpdate(spouse);
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            System.out.println("Something went wrong please try again");
+        }
+    }
+
 
     private void loanInstallmentsFirstYear(Loan loan) {
 
@@ -353,35 +377,35 @@ public class Menu {
         double firstYearInstallmentPrice = calFirstYearInstallment(loanPrice);
         LoanInstallment firstYearInstallment = new LoanInstallment(loan, graduationDate, firstYearInstallmentPrice, false);
 
-            for (int i = 0; i < 12; i++) {
-                ApplicationContext.getLoanInstallmentService().saveOrUpdate(firstYearInstallment);
+        for (int i = 0; i < 12; i++) {
+            ApplicationContext.getLoanInstallmentService().saveOrUpdate(firstYearInstallment);
 //            System.out.println(firstYearInstallment);
-                try {
-                    graduationDate = graduationDate.plusMonths(1);
-                } catch (Exception e) {
-                    graduationDate = graduationDate.withMonth(1).plusYears(1);
-                }
-                firstYearInstallment = new LoanInstallment(loan, graduationDate, firstYearInstallmentPrice, false);
+            try {
+                graduationDate = graduationDate.plusMonths(1);
+            } catch (Exception e) {
+                graduationDate = graduationDate.withMonth(1).plusYears(1);
             }
+            firstYearInstallment = new LoanInstallment(loan, graduationDate, firstYearInstallmentPrice, false);
         }
+    }
 
     private void loanInstallmentsSecondYear(Loan loan) {
 
         Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
         long loanPrice = loan.getPrice();
-        LocalDate startDate = LocalDate.of((calGraduationDate(student).getYear()+1), calGraduationDate(student).getMonthValue(), calGraduationDate(student).getDayOfMonth());
+        LocalDate startDate = LocalDate.of((calGraduationDate(student).getYear() + 1), calGraduationDate(student).getMonthValue(), calGraduationDate(student).getDayOfMonth());
         double secondYearInstallmentPrice = calSecondYearInstallment(loanPrice);
         LoanInstallment secondYearInstallment = new LoanInstallment(loan, startDate, secondYearInstallmentPrice, false);
 
-        for (int i = 0; i < 12 ; i++) {
+        for (int i = 0; i < 12; i++) {
             ApplicationContext.getLoanInstallmentService().saveOrUpdate(secondYearInstallment);
 //            System.out.println(firstYearInstallment);
             try {
                 startDate = startDate.plusMonths(1);
-            }catch (Exception e) {
+            } catch (Exception e) {
                 startDate = startDate.withMonth(1).plusYears(1);
             }
-            secondYearInstallment = new LoanInstallment(loan,startDate, secondYearInstallmentPrice, false);
+            secondYearInstallment = new LoanInstallment(loan, startDate, secondYearInstallmentPrice, false);
         }
     }
 
@@ -389,19 +413,19 @@ public class Menu {
 
         Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
         long loanPrice = loan.getPrice();
-        LocalDate startDate = LocalDate.of((calGraduationDate(student).getYear()+2), calGraduationDate(student).getMonthValue(), calGraduationDate(student).getDayOfMonth());
+        LocalDate startDate = LocalDate.of((calGraduationDate(student).getYear() + 2), calGraduationDate(student).getMonthValue(), calGraduationDate(student).getDayOfMonth());
         double thirdYearInstallmentPrice = calThirdYearInstallment(loanPrice);
         LoanInstallment thirdYearInstallment = new LoanInstallment(loan, startDate, thirdYearInstallmentPrice, false);
 
-        for (int i = 0; i < 12 ; i++) {
+        for (int i = 0; i < 12; i++) {
             ApplicationContext.getLoanInstallmentService().saveOrUpdate(thirdYearInstallment);
 //            System.out.println(firstYearInstallment);
             try {
                 startDate = startDate.plusMonths(1);
-            }catch (Exception e) {
+            } catch (Exception e) {
                 startDate = startDate.withMonth(1).plusYears(1);
             }
-            thirdYearInstallment = new LoanInstallment(loan,startDate, thirdYearInstallmentPrice, false);
+            thirdYearInstallment = new LoanInstallment(loan, startDate, thirdYearInstallmentPrice, false);
         }
     }
 
@@ -409,19 +433,19 @@ public class Menu {
 
         Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
         long loanPrice = loan.getPrice();
-        LocalDate startDate = LocalDate.of((calGraduationDate(student).getYear()+3), calGraduationDate(student).getMonthValue(), calGraduationDate(student).getDayOfMonth());
+        LocalDate startDate = LocalDate.of((calGraduationDate(student).getYear() + 3), calGraduationDate(student).getMonthValue(), calGraduationDate(student).getDayOfMonth());
         double forthYearInstallmentPrice = calForthYearInstallment(loanPrice);
         LoanInstallment forthYearInstallment = new LoanInstallment(loan, startDate, forthYearInstallmentPrice, false);
 
-        for (int i = 0; i < 12 ; i++) {
+        for (int i = 0; i < 12; i++) {
             ApplicationContext.getLoanInstallmentService().saveOrUpdate(forthYearInstallment);
 //            System.out.println(firstYearInstallment);
             try {
                 startDate = startDate.plusMonths(1);
-            }catch (Exception e) {
+            } catch (Exception e) {
                 startDate = startDate.withMonth(1).plusYears(1);
             }
-            forthYearInstallment = new LoanInstallment(loan,startDate, forthYearInstallmentPrice, false);
+            forthYearInstallment = new LoanInstallment(loan, startDate, forthYearInstallmentPrice, false);
         }
     }
 
@@ -429,19 +453,19 @@ public class Menu {
 
         Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
         long loanPrice = loan.getPrice();
-        LocalDate startDate = LocalDate.of((calGraduationDate(student).getYear()+4), calGraduationDate(student).getMonthValue(), calGraduationDate(student).getDayOfMonth());
+        LocalDate startDate = LocalDate.of((calGraduationDate(student).getYear() + 4), calGraduationDate(student).getMonthValue(), calGraduationDate(student).getDayOfMonth());
         double fifthYearInstallmentPrice = calFifthYearInstallment(loanPrice);
         LoanInstallment fifthYearInstallment = new LoanInstallment(loan, startDate, fifthYearInstallmentPrice, false);
 
-        for (int i = 0; i < 12 ; i++) {
+        for (int i = 0; i < 12; i++) {
             ApplicationContext.getLoanInstallmentService().saveOrUpdate(fifthYearInstallment);
 //            System.out.println(firstYearInstallment);
             try {
                 startDate = startDate.plusMonths(1);
-            }catch (Exception e) {
+            } catch (Exception e) {
                 startDate = startDate.withMonth(1).plusYears(1);
             }
-            fifthYearInstallment = new LoanInstallment(loan,startDate, fifthYearInstallmentPrice, false);
+            fifthYearInstallment = new LoanInstallment(loan, startDate, fifthYearInstallmentPrice, false);
         }
     }
 
@@ -472,18 +496,20 @@ public class Menu {
         return false;
     }
 
-    public LocalDate calGraduationDate(Student student){
+    public LocalDate calGraduationDate(Student student) {
 
         PersianDate persianDate = PersianDate.of(student.getEntryYear(), 7, 1);
         long julianDay = persianDate.toEpochDay();
         LocalDate entryDate = LocalDate.ofEpochDay(julianDay);
         LocalDate graduationDate = null;
 
-        switch (student.getEducationLevel()){
-            case KARDANI, KARSHENASI_ARSHAD_NAPEIVASTE -> graduationDate = LocalDate.of((entryDate.getYear()+2), 9, 23);
-            case KARSHENASI -> graduationDate = LocalDate.of((entryDate.getYear()+4), 9, 23);
-            case KARSHENASI_ARSHAD_PEIVASTE -> graduationDate = LocalDate.of((entryDate.getYear()+6), 9, 23);
-            case DOCTORA_NAPEIVASTE, DOCTORA_HERFEEI_VA_PEIVASTE -> graduationDate = LocalDate.of((entryDate.getYear()+5), 9, 23);
+        switch (student.getEducationLevel()) {
+            case KARDANI, KARSHENASI_ARSHAD_NAPEIVASTE ->
+                    graduationDate = LocalDate.of((entryDate.getYear() + 2), 9, 23);
+            case KARSHENASI -> graduationDate = LocalDate.of((entryDate.getYear() + 4), 9, 23);
+            case KARSHENASI_ARSHAD_PEIVASTE -> graduationDate = LocalDate.of((entryDate.getYear() + 6), 9, 23);
+            case DOCTORA_NAPEIVASTE, DOCTORA_HERFEEI_VA_PEIVASTE ->
+                    graduationDate = LocalDate.of((entryDate.getYear() + 5), 9, 23);
         }
 
         return graduationDate;
@@ -992,9 +1018,9 @@ public class Menu {
         return input;
     }
 
-    private LocalDate getBirthDate() {
+    private LocalDate getBirthDate(String whomBirthDate) {
 
-        System.out.println("Please enter your birthdate in YYYY-MM-DD format (for example: 1378-12-12");
+        System.out.println("Please enter your " + whomBirthDate + "in YYYY-MM-DD format (for example: 1378-12-12");
         String input = scanner.nextLine();
         LocalDate birthDate;
 
@@ -1008,7 +1034,7 @@ public class Menu {
                     input = scanner.nextLine();
                 }
             } else {
-                System.out.println("please enter your birthDate");
+                System.out.println("please enter your " + whomBirthDate );
                 input = scanner.nextLine();
             }
         }
