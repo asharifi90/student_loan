@@ -16,7 +16,7 @@ implements StudentService{
 
     @Override
     public Student signIn(String codeMelli, String password) {
-        try(Session session = SessionFactorySingleton.getInstance().getCurrentSession()){
+        try(Session session = sessionFactory.getCurrentSession()){
             Transaction t = session.beginTransaction();
             Student s = repository.findByUsername(codeMelli);
             if(s != null && s.getPassword().equals(password)){
