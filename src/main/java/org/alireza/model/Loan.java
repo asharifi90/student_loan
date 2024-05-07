@@ -63,6 +63,16 @@ public class Loan extends BaseEntity<Long> {
         this.loanInstallments = new ArrayList<>();
     }
 
+    public Loan(EducationLevel educationLevel, Long price, LocalDate loanDate, PaymentMethod paymentMethod, City city, LoanType loanType, Student student) {
+        this.educationLevel = educationLevel;
+        this.price = price;
+        this.loanDate = loanDate;
+        this.paymentMethod = paymentMethod;
+        this.city = city;
+        this.loanType = loanType;
+        this.student = student;
+    }
+
     public String toString() {
         return "Loan(educationLevel=" + this.getEducationLevel() +
                 ", price=" + this.getPrice() +
