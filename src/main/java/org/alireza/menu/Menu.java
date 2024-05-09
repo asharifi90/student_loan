@@ -6,12 +6,8 @@ import org.alireza.model.Enum.*;
 import org.alireza.util.ApplicationContext;
 import org.alireza.util.PasswordGen;
 import org.alireza.util.Validation;
-import org.hibernate.event.spi.SaveOrUpdateEvent;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -25,26 +21,375 @@ public class Menu {
 
         System.out.println("====Student Loan System=====");
         System.out.println("What do you want to do? ");
-        System.out.println("1. register");
-        System.out.println("2. Get a loan");
-        System.out.println("3. Refund loan");
-        System.out.println("2. EXIT");
+        System.out.println("1. Register");
+        System.out.println("2. signIn");
+        System.out.println("3. EXIT");
 
         userChoice = getValidNumber(3);
 
         switch (userChoice) {
             case 1 -> studentRegister();
-            case 2 -> getLoan();
-            case 3 -> refundLoan();
-            case 4 -> System.out.println("good luck");
+            case 2 -> studentSignIn();
+            case 3 -> System.out.println("good luck");
             default -> System.out.println("invalid number");
         }
+    }
 
+    public void studentSignIn() {
 
+        System.out.println("Please enter your code melli:");
+        String codeMelli = scanner.nextLine().trim();
+
+        while (true) {
+            if (!codeMelli.isEmpty()) {
+                break;
+            } else {
+                System.out.println("codeMelli cant be blank, enter again");
+                codeMelli = scanner.nextLine().trim();
+            }
+        }
+
+        System.out.println("Please enter your passwprd: ");
+        String password = scanner.nextLine().trim();
+
+        while (true) {
+            if (!password.isEmpty()) {
+                break;
+            } else {
+                System.out.println("password cant be blank, enter again");
+                password = scanner.nextLine().trim();
+            }
+        }
+
+        Student student = ApplicationContext.getStudentService().signIn(codeMelli, password);
+
+        if (student != null) {
+            SecurityContext.id = student.getId();
+            SecurityContext.username = student.getCodeMelli();
+            loanMenu();
+        } else {
+            System.out.println("codeMelli or password is not correct, enter again");
+        }
+    }
+
+    public void loanMenu() {
+
+        int userChoice = 0;
+
+        System.out.println("1. Get a loan");
+        System.out.println("2. Refund a loan");
+        System.out.println("3. Check loan installments in your dashboard");
+        System.out.println("4. EXIT");
+
+        userChoice = getValidNumber(4);
+
+        switch (userChoice) {
+            case 1 -> getLoan();
+            case 2 -> refundLoan();
+            case 3 -> checkLoan();
+            case 4 -> System.out.println("Exit");
+            default -> System.out.println("invalid number");
+        }
     }
 
     private void refundLoan() {
 
+        int userChoice = 0;
+        Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
+        if (student.isGraduate()) {
+
+            System.out.println("1. Check paid installments");
+            System.out.println("2. Check unpaid installments");
+            System.out.println("3. pay your installments");
+            System.out.println("Please select a number");
+
+            userChoice = getValidNumber(3);
+
+            switch (userChoice) {
+                case 1 -> showPaidInstallments();
+                case 2 -> showUnpaidInstallments();
+                case 3 -> payInstallments();
+                default -> System.out.println("Invalid number");
+            }
+        } else{
+            System.out.println("You can refund your loans whenever you are graduated.");
+        }
+    }
+
+
+    public void payInstallments(){
+
+        Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
+
+        showUnpaidInstallments();
+        System.out.println("Which installment do you want to pay? (Please select installment number)");
+        while
+
+    }
+
+    private void showUnpaidInstallments(){
+            Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
+
+            Loan housingLoan, tuitionLoan, educationLoan;
+
+            System.out.println("Please select the number");
+            System.out.println("1. Housing loan");
+            System.out.println("2. Tuition loan");
+            System.out.println("3. Education loan");
+            System.out.println("4. Exit");
+
+            int userChoice = getValidNumber(4);
+            List<LoanInstallment> loanInstallmentList;
+            LocalDate loanInstallmentDate;
+            PersianDate loanInstallmentDatePersian;
+
+            switch (userChoice) {
+                case 1 -> {
+                    try {
+                        housingLoan = ApplicationContext.getLoanService().findByStudentId(student.getId(), LoanType.HOUSING_LOAN);
+                        if (housingLoan == null) {
+                            System.out.println("You dont have housing loan");
+                        } else {
+                            loanInstallmentList = ApplicationContext.getLoanInstallmentService().paidInstallments(false, housingLoan.getId());
+                            System.out.println("Your unpaid installments for your housing loan are:");
+                            for (LoanInstallment loanInstallment : loanInstallmentList) {
+                                loanInstallmentDate = loanInstallment.getInstallmentDate();
+                                loanInstallmentDatePersian = PersianDate.ofGregorian(loanInstallmentDate);
+
+                                System.out.println(loanInstallment.getId() + ". " + loanInstallmentDatePersian + "   " + (int) Math.ceil(loanInstallment.getPrice()));
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                    }
+                }
+                case 2 -> {
+                    try {
+                        tuitionLoan = ApplicationContext.getLoanService().findByStudentId(student.getId(), LoanType.TUITION_LOAN);
+                        if (tuitionLoan == null) {
+                            System.out.println("You dont have tuition loan");
+                        } else {
+                            loanInstallmentList = ApplicationContext.getLoanInstallmentService().paidInstallments(false, tuitionLoan.getId());
+                            System.out.println("Your unpaid installments for your tuition loan are:");
+                            for (LoanInstallment loanInstallment : loanInstallmentList) {
+                                loanInstallmentDate = loanInstallment.getInstallmentDate();
+                                loanInstallmentDatePersian = PersianDate.ofGregorian(loanInstallmentDate);
+
+                                System.out.println(loanInstallment.getId() + ". " + loanInstallmentDatePersian + "   " + (int) Math.ceil(loanInstallment.getPrice()));
+                            }
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+                case 3 -> {
+                    try {
+                        educationLoan = ApplicationContext.getLoanService().findByStudentId(student.getId(), LoanType.EDUCATION_LOAN);
+                        if (educationLoan == null) {
+                            System.out.println("You dont have education loan");
+                        } else {
+                            loanInstallmentList = ApplicationContext.getLoanInstallmentService().paidInstallments(false, educationLoan.getId());
+                            System.out.println("Your unpaid installments for education loan are:");
+                            for (LoanInstallment loanInstallment : loanInstallmentList) {
+                                loanInstallmentDate = loanInstallment.getInstallmentDate();
+                                loanInstallmentDatePersian = PersianDate.ofGregorian(loanInstallmentDate);
+
+                                System.out.println(educationLoan.getId() + ". " + loanInstallmentDatePersian + "   " + (int) Math.ceil(loanInstallment.getPrice()));
+                            }
+
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+                case 4 -> System.out.println();
+                default -> System.out.println("invalid number");
+            }
+        }
+
+
+    private void showPaidInstallments(){
+        Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
+
+            Loan housingLoan, tuitionLoan, educationLoan;
+
+            System.out.println("Which loan do you want to check?");
+            System.out.println("1. Housing loan");
+            System.out.println("2. Tuition loan");
+            System.out.println("3. Education loan");
+            System.out.println("4. Exit");
+
+            int userChoice = getValidNumber(4);
+            List<LoanInstallment> loanInstallmentList;
+            LocalDate loanInstallmentDate;
+            PersianDate loanInstallmentDatePersian;
+
+            switch (userChoice) {
+                case 1 -> {
+                    try {
+                        housingLoan = ApplicationContext.getLoanService().findByStudentId(student.getId(), LoanType.HOUSING_LOAN);
+                        if (housingLoan == null) {
+                            System.out.println("You dont have housing loan");
+                        } else {
+                            loanInstallmentList = ApplicationContext.getLoanInstallmentService().paidInstallments(true, housingLoan.getId());
+                            System.out.println("Your paid installments for your housing loan are:");
+                            for (LoanInstallment loanInstallment : loanInstallmentList) {
+                                loanInstallmentDate = loanInstallment.getInstallmentDate();
+                                loanInstallmentDatePersian = PersianDate.ofGregorian(loanInstallmentDate);
+
+                                System.out.println(loanInstallment.getId() + ". " + loanInstallmentDatePersian);
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                    }
+                }
+                case 2 -> {
+                    try {
+                        tuitionLoan = ApplicationContext.getLoanService().findByStudentId(student.getId(), LoanType.TUITION_LOAN);
+                        if (tuitionLoan == null) {
+                            System.out.println("You dont have tuition loan");
+                        } else {
+                            loanInstallmentList = ApplicationContext.getLoanInstallmentService().paidInstallments(true, tuitionLoan.getId());
+                            System.out.println("Your paid installments for your tuition loan are:");
+                            for (LoanInstallment loanInstallment : loanInstallmentList) {
+                                loanInstallmentDate = loanInstallment.getInstallmentDate();
+                                loanInstallmentDatePersian = PersianDate.ofGregorian(loanInstallmentDate);
+
+                                System.out.println(loanInstallment.getId() + ". " + loanInstallmentDatePersian);
+                            }
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+                case 3 -> {
+                    try {
+                        educationLoan = ApplicationContext.getLoanService().findByStudentId(student.getId(), LoanType.EDUCATION_LOAN);
+                        if (educationLoan == null) {
+                            System.out.println("You dont have education loan");
+                        } else {
+                            loanInstallmentList = ApplicationContext.getLoanInstallmentService().paidInstallments(true, educationLoan.getId());
+                            System.out.println("Your paid installments for education loan are:");
+                            for (LoanInstallment loanInstallment : loanInstallmentList) {
+                                loanInstallmentDate = loanInstallment.getInstallmentDate();
+                                loanInstallmentDatePersian = PersianDate.ofGregorian(loanInstallmentDate);
+
+                                System.out.println(educationLoan.getId() + ". " + loanInstallmentDatePersian );
+                            }
+
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+                case 4 -> System.out.println();
+                default -> System.out.println("invalid number");
+            }
+        }
+
+    private void getLoan() {
+
+        int userChoice = 0;
+
+        System.out.println("Select a loan: ");
+        System.out.println("1. Tuition loan");
+        System.out.println("2. Education loan");
+        System.out.println("3. Housing loan");
+        System.out.println("4. EXIT");
+
+        userChoice = getValidNumber(4);
+
+        switch (userChoice) {
+            case 1 -> getTuitionLoan();
+            case 2 -> getEducationLoan();
+            case 3 -> getHousingLoan();
+            case 4 -> System.out.println("good luck");
+            default -> System.out.println("invalid number");
+        }
+    }
+
+    public void checkLoan() {
+
+        Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
+
+        Loan housingLoan, tuitionLoan, educationLoan;
+
+        System.out.println("Which loan do you want to check?");
+        System.out.println("1. Housing loan");
+        System.out.println("2. Tuition loan");
+        System.out.println("3. Education loan");
+        System.out.println("4. Exit");
+
+        int userChoice = getValidNumber(4);
+        List<LoanInstallment> loanInstallmentList;
+        LocalDate loanInstallmentDate;
+        PersianDate loanInstallmentDatePersian;
+
+        switch (userChoice) {
+            case 1 -> {
+                try {
+                    housingLoan = ApplicationContext.getLoanService().findByStudentId(student.getId(), LoanType.HOUSING_LOAN);
+                    if (housingLoan == null) {
+                        System.out.println("You dont have housing loan");
+                    } else {
+                        loanInstallmentList = ApplicationContext.getLoanInstallmentService().findByLoanId(housingLoan.getId());
+                        int counter = 1;
+                        System.out.println("Your housing loan installments are:");
+                        for (LoanInstallment loanInstallment : loanInstallmentList) {
+                            loanInstallmentDate = loanInstallment.getInstallmentDate();
+                            loanInstallmentDatePersian = PersianDate.ofGregorian(loanInstallmentDate);
+
+                            System.out.println(counter + ". " + loanInstallmentDatePersian + "  " + (int) Math.ceil(loanInstallment.getPrice()));
+                            counter++;
+                        }
+
+                    }
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+            case 2 -> {
+                try {
+                    tuitionLoan = ApplicationContext.getLoanService().findByStudentId(student.getId(), LoanType.TUITION_LOAN);
+                    if (tuitionLoan == null) {
+                        System.out.println("You dont have tuition loan");
+                    } else {
+                        loanInstallmentList = ApplicationContext.getLoanInstallmentService().findByLoanId(tuitionLoan.getId());
+                        int counter = 1;
+                        System.out.println("Your tuition loan installments are:");
+                        for (LoanInstallment loanInstallment : loanInstallmentList) {
+                            loanInstallmentDate = loanInstallment.getInstallmentDate();
+                            loanInstallmentDatePersian = PersianDate.ofGregorian(loanInstallmentDate);
+
+                            System.out.println(counter + ". " + loanInstallmentDatePersian + "  " + (int) Math.ceil(loanInstallment.getPrice()));
+                            counter++;
+                        }
+
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            case 3 -> {
+                try {
+                    educationLoan = ApplicationContext.getLoanService().findByStudentId(student.getId(), LoanType.EDUCATION_LOAN);
+                    if (educationLoan == null) {
+                        System.out.println("You dont have education loan");
+                    } else {
+                        loanInstallmentList = ApplicationContext.getLoanInstallmentService().findByLoanId(educationLoan.getId());
+                        int counter = 1;
+                        System.out.println("Your education loan installments are:");
+                        for (LoanInstallment loanInstallment : loanInstallmentList) {
+                            loanInstallmentDate = loanInstallment.getInstallmentDate();
+                            loanInstallmentDatePersian = PersianDate.ofGregorian(loanInstallmentDate);
+
+                            System.out.println(counter + ". " + loanInstallmentDatePersian + "  " + (int) Math.ceil(loanInstallment.getPrice()));
+                            counter++;
+                        }
+
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            case 4 -> System.out.println();
+            default -> System.out.println("invalid number");
+        }
     }
 
     public void studentRegister() {
@@ -146,64 +491,6 @@ public class Menu {
     }
 
 
-    public void studentSignIn() {
-
-        System.out.println("Please enter your code melli:");
-        String codeMelli = scanner.nextLine().trim();
-
-        while (true) {
-            if (!codeMelli.isEmpty()) {
-                break;
-            } else {
-                System.out.println("codeMelli cant be blank, enter again");
-                codeMelli = scanner.nextLine().trim();
-            }
-        }
-
-        System.out.println("Please enter your passwprd: ");
-        String password = scanner.nextLine().trim();
-
-        while (true) {
-            if (!password.isEmpty()) {
-                break;
-            } else {
-                System.out.println("password cant be blank, enter again");
-                password = scanner.nextLine().trim();
-            }
-        }
-
-        Student student = ApplicationContext.getStudentService().signIn(codeMelli, password);
-
-        if (student != null) {
-            SecurityContext.id = student.getId();
-            SecurityContext.username = student.getCodeMelli();
-            getLoan();
-        } else {
-            System.out.println("codeMelli or password is not correct, enter again");
-        }
-    }
-
-    private void getLoan() {
-
-        int userChoice = 0;
-
-        System.out.println("Select a loan: ");
-        System.out.println("1. Tuition loan");
-        System.out.println("2. Education loan");
-        System.out.println("3. Housing loan");
-        System.out.println("4. EXIT");
-
-        userChoice = getValidNumber(4);
-
-        switch (userChoice) {
-            case 1 -> getTuitionLoan();
-            case 2 -> getEducationLoan();
-            case 3 -> getHousingLoan();
-            case 4 -> System.out.println("good luck");
-            default -> System.out.println("invalid number");
-        }
-    }
-
     public void getTuitionLoan() {
 
         Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
@@ -228,7 +515,7 @@ public class Menu {
                 bankCard.setStudent(student);
                 bankCard.setBalance(loanPrice);
                 ApplicationContext.getBankCardService().saveOrUpdate(bankCard);
-                Loan tuitionLoan = new Loan(student.getEducationLevel(), loanPrice, PaymentMethod.ONCE_PER_TERM, null, LoanType.TUITION_LOAN, student);
+                Loan tuitionLoan = new Loan(student.getEducationLevel(), loanPrice, startDateWinterSemester, PaymentMethod.ONCE_PER_TERM, null, LoanType.TUITION_LOAN, student);
                 ApplicationContext.getLoanService().saveOrUpdate(tuitionLoan);
                 loanInstallmentsFirstYear(tuitionLoan);
                 loanInstallmentsSecondYear(tuitionLoan);
@@ -241,7 +528,7 @@ public class Menu {
                 long newBalance = savedBankCard.getBalance() + loanPrice;
                 savedBankCard.setBalance(newBalance);
                 ApplicationContext.getBankCardService().saveOrUpdate(savedBankCard);
-                Loan tuitionLoan = new Loan(student.getEducationLevel(), loanPrice, PaymentMethod.ONCE_PER_TERM, null, LoanType.TUITION_LOAN, student);
+                Loan tuitionLoan = new Loan(student.getEducationLevel(), loanPrice, startDateWinterSemester, PaymentMethod.ONCE_PER_TERM, null, LoanType.TUITION_LOAN, student);
                 ApplicationContext.getLoanService().saveOrUpdate(tuitionLoan);
                 loanInstallmentsFirstYear(tuitionLoan);
                 loanInstallmentsSecondYear(tuitionLoan);
@@ -275,7 +562,7 @@ public class Menu {
                 bankCard.setStudent(student);
                 bankCard.setBalance(loanPrice);
                 ApplicationContext.getBankCardService().saveOrUpdate(bankCard);
-                Loan educationLoan = new Loan(student.getEducationLevel(), loanPrice, PaymentMethod.ONCE_PER_TERM, null, LoanType.EDUCATION_LOAN, student);
+                Loan educationLoan = new Loan(student.getEducationLevel(), loanPrice, startDateWinterSemester, PaymentMethod.ONCE_PER_TERM, null, LoanType.EDUCATION_LOAN, student);
                 ApplicationContext.getLoanService().saveOrUpdate(educationLoan);
                 loanInstallmentsFirstYear(educationLoan);
                 loanInstallmentsSecondYear(educationLoan);
@@ -288,7 +575,7 @@ public class Menu {
                 long newBalance = savedBankCard.getBalance() + loanPrice;
                 savedBankCard.setBalance(newBalance);
                 ApplicationContext.getBankCardService().saveOrUpdate(savedBankCard);
-                Loan educationLoan = new Loan(student.getEducationLevel(), loanPrice, PaymentMethod.ONCE_PER_TERM, null, LoanType.TUITION_LOAN, student);
+                Loan educationLoan = new Loan(student.getEducationLevel(), loanPrice, startDateWinterSemester, PaymentMethod.ONCE_PER_TERM, null, LoanType.TUITION_LOAN, student);
                 ApplicationContext.getLoanService().saveOrUpdate(educationLoan);
                 loanInstallmentsFirstYear(educationLoan);
                 loanInstallmentsSecondYear(educationLoan);
@@ -300,7 +587,7 @@ public class Menu {
         }
     }
 
-    private void getHousingLoan() {
+    public void getHousingLoan() {
 
         Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
         long loanPrice = 0;
@@ -313,10 +600,12 @@ public class Menu {
             System.out.println("you can get Housing loan only once per level");
         } else if (!student.isDormitoryResident()) {
             System.out.println("You dont live in dormitory, so you are not eligible to get housing loan");
-        } else if (student.getSpouse() == null) {
+        } else if (student.getMaritalStatus() == MaritalStatus.SINGLE) {
             System.out.println("you are not married, so you are not eligible to get housing loan");
         } else {
             loanPrice = housingLoanPriceForStudent(student.getCity());
+            Spouse spouse = getSpouseInformation();
+            int contractNumber = getContractNumber();
             bankCard = getBankCardInformation();
             if (bankCard == null) {
                 System.out.println("Please enter a valid bank card");
@@ -324,7 +613,12 @@ public class Menu {
                 bankCard.setStudent(student);
                 bankCard.setBalance(loanPrice);
                 ApplicationContext.getBankCardService().saveOrUpdate(bankCard);
-                Loan housingLoan = new Loan(student.getEducationLevel(), loanPrice, PaymentMethod.ONCE_PER_LEVEL, student.getCity(), LoanType.HOUSING_LOAN, student);
+                ApplicationContext.getSpouseService().saveOrUpdate(spouse);
+                student.setSpouse(spouse);
+                student.setContractNumber(contractNumber);
+                ApplicationContext.getStudentService().saveOrUpdate(student);
+                Loan housingLoan = new Loan(student.getEducationLevel(), loanPrice, startDateWinterSemester, PaymentMethod.ONCE_PER_LEVEL,
+                        student.getCity(), LoanType.HOUSING_LOAN, student);
                 ApplicationContext.getLoanService().saveOrUpdate(housingLoan);
                 loanInstallmentsFirstYear(housingLoan);
                 loanInstallmentsSecondYear(housingLoan);
@@ -337,7 +631,12 @@ public class Menu {
                 long newBalance = savedBankCard.getBalance() + loanPrice;
                 savedBankCard.setBalance(newBalance);
                 ApplicationContext.getBankCardService().saveOrUpdate(savedBankCard);
-                Loan housingLoan = new Loan(student.getEducationLevel(), loanPrice, PaymentMethod.ONCE_PER_LEVEL, student.getCity(), LoanType.HOUSING_LOAN, student);
+                ApplicationContext.getSpouseService().saveOrUpdate(spouse);
+                student.setSpouse(spouse);
+                student.setContractNumber(contractNumber);
+                ApplicationContext.getStudentService().saveOrUpdate(student);
+                Loan housingLoan = new Loan(student.getEducationLevel(), loanPrice, startDateWinterSemester,
+                        PaymentMethod.ONCE_PER_LEVEL, student.getCity(), LoanType.HOUSING_LOAN, student);
                 ApplicationContext.getLoanService().saveOrUpdate(housingLoan);
                 loanInstallmentsFirstYear(housingLoan);
                 loanInstallmentsSecondYear(housingLoan);
@@ -349,7 +648,22 @@ public class Menu {
         }
     }
 
-    public void getSpouseInformation() {
+    private int getContractNumber() {
+
+        int contractNumber;
+
+        System.out.println("Please enter your house contractNumber");
+        while (!scanner.hasNextInt()) {
+            System.out.println("please enter a valid contractNumber");
+            scanner.nextLine();
+        }
+        contractNumber = scanner.nextInt();
+        scanner.nextLine();
+
+        return contractNumber;
+    }
+
+    private Spouse getSpouseInformation() {
         Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
 
         String firstname = getInformation("your spouse firstname");
@@ -360,12 +674,7 @@ public class Menu {
         LocalDate birthDate = getBirthDate("spouse birtDate");
 
         Spouse spouse = new Spouse(firstname, lastname, fatherName, motherName, codeMelli, birthDate, student);
-        try {
-            ApplicationContext.getSpouseService().saveOrUpdate(spouse);
-        }catch (Exception e){
-            System.out.println(e.getMessage());
-            System.out.println("Something went wrong please try again");
-        }
+        return spouse;
     }
 
 
@@ -429,7 +738,7 @@ public class Menu {
         }
     }
 
-    public void loanInstallmentsForthYear(Loan loan) {
+    private void loanInstallmentsForthYear(Loan loan) {
 
         Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
         long loanPrice = loan.getPrice();
@@ -449,7 +758,7 @@ public class Menu {
         }
     }
 
-    public void loanInstallmentsFifthYear(Loan loan) {
+    private void loanInstallmentsFifthYear(Loan loan) {
 
         Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
         long loanPrice = loan.getPrice();
@@ -496,7 +805,7 @@ public class Menu {
         return false;
     }
 
-    public LocalDate calGraduationDate(Student student) {
+    private LocalDate calGraduationDate(Student student) {
 
         PersianDate persianDate = PersianDate.of(student.getEntryYear(), 7, 1);
         long julianDay = persianDate.toEpochDay();
@@ -550,7 +859,7 @@ public class Menu {
     }
 
 
-    public BankCard getBankCardInformation() {
+    private BankCard getBankCardInformation() {
 
         long cardNumber;
         String bankName;
@@ -594,7 +903,7 @@ public class Menu {
         return bankCard;
     }
 
-    private LocalDate getValidExpiryDate() {
+    public LocalDate getValidExpiryDate() {
 
         int month = 0;
         int year = 0;
@@ -610,7 +919,7 @@ public class Menu {
             String[] parts = expiryString.split("/");
             year = Integer.parseInt(parts[0]);
             month = Integer.parseInt(parts[1]);
-            if (month < 4 || month > 12 || year < 1403 || year > 1413) {
+            if (month < 1 || month > 12 || year < 1403 || year > 1413) {
                 System.out.println("Invalid date, the expiry date must be after 1403/03");
             } else {
                 persianDate = PersianDate.of(year, month, 1);
@@ -618,7 +927,7 @@ public class Menu {
                 localDate = LocalDate.ofEpochDay(julianDay);
             }
         } catch (Exception e) {
-            System.out.println("Invalid expiry date format. Please enter YYYY/MM.");
+            System.out.println("Invalid expiry date format.");
             expiryString = scanner.nextLine();
         }
         return localDate;
@@ -1034,7 +1343,7 @@ public class Menu {
                     input = scanner.nextLine();
                 }
             } else {
-                System.out.println("please enter your " + whomBirthDate );
+                System.out.println("please enter your " + whomBirthDate);
                 input = scanner.nextLine();
             }
         }

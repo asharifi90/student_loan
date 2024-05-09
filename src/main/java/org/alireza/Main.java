@@ -1,17 +1,25 @@
 package org.alireza;
 
+import com.github.mfathi91.time.PersianDate;
+import org.alireza.menu.Menu;
 import org.alireza.model.*;
 import org.alireza.model.Enum.*;
 import org.alireza.service.bankCard.BankCardService;
 import org.alireza.service.loan.LoanService;
 import org.alireza.util.ApplicationContext;
+import org.alireza.util.Validation;
+
 
 import java.time.LocalDate;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
 
-//        BankCard bankCard = new BankCard(6666333344445555L, LocalDate.of(1406, 9, 10), 546, );
+        Menu menu = new Menu();
+        menu.studentSignIn();
+
+//        BankCard bankCard = new BankCard("Melli", 6037999922223333L, LocalDate.of(2024, 12, 1), 333 );
 //        ApplicationContext.getBankCardService().saveOrUpdate(bankCard);
 //        System.out.println(ApplicationContext.getBankCardService().findAll());
 //        ApplicationContext.getBankCardService().deleteById(1L);
@@ -34,7 +42,7 @@ public class Main {
 //        System.out.println(ApplicationContext.getSpouseService().findById(1L));
 //        ApplicationContext.getSpouseService().deleteById(1L);
 
-//        University university = new University("Tehran", "Tehran", UniversityType.DOWLATI_ROOZANEH);
+//        University university = new University("Tehran",City.TEHRAN, UniversityType.DOWLATI_ROOZANEH);
 //university.setId(1L);
 //        ApplicationContext.getUniversityService().saveOrUpdate(university);
 //        System.out.println(ApplicationContext.getUniversityService().findById(1L));
@@ -53,7 +61,9 @@ public class Main {
 //        BankCard bankCard = new BankCard(6666333344445555L, LocalDate.of(1406, 9, 10), 546, student);
 //        ApplicationContext.getBankCardService().saveOrUpdate(bankCard);
 
-//        Loan loan = new Loan(EducationLevel.KARSHENASI, 1900000L, PaymentMethod.ONCE_PER_TERM,"Tehran", LoanType.EDUCATION_LOAN,student);
+//        Loan loan = new Loan(EducationLevel.KARSHENASI, 1900000L, PaymentMethod.ONCE_PER_TERM,City.SAYER, LoanType.EDUCATION_LOAN,ApplicationContext.getStudentService().findById(4L));
 //        ApplicationContext.getLoanService().saveOrUpdate(loan);
+
+
     }
 }

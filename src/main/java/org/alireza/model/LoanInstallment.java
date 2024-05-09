@@ -41,7 +41,7 @@ public class LoanInstallment extends BaseEntity<Long> {
     }
 
     public String toString() {
-        return "LoanInstallment(loan=" + this.getLoan() + "\n" +
+        return
                 ", installmentDate=" + this.getInstallmentDate() + "\n" +
                 ", price=" + this.getPrice() + "\n" +
                 ", paid=" + this.isPaid() + ")" + "\n";
