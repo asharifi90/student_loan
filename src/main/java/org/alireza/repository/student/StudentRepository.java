@@ -6,4 +6,5 @@ import org.alireza.model.Student;
 public interface StudentRepository extends BaseRepository<Student, Long> {
 
     Student findByUsername(String codeMelli);
+
 }

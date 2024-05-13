@@ -4,9 +4,12 @@ import org.alireza.base.service.BaseServiceImpl;
 import org.alireza.connection.SessionFactorySingleton;
 import org.alireza.model.Student;
 import org.alireza.repository.student.StudentRepository;
+import org.alireza.repository.student.StudentRepositoryImpl;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+
+import java.nio.channels.SeekableByteChannel;
 
 public class StudentServiceImpl extends BaseServiceImpl<Student, Long, StudentRepository>
 implements StudentService{
@@ -27,5 +30,17 @@ implements StudentService{
             return null;
         }
         return null;
+    }
+
+    @Override
+    public Student findByCodeMelli(String codeMelli) {
+        try(Session session = sessionFactory.getCurrentSession()){
+            Transaction t = session.beginTransaction();
+            Student student = repository.findByUsername(codeMelli);
+            t.commit();
+            return student;
+        }catch (Exception e){
+            return null;
+        }
     }
 }
