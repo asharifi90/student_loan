@@ -7,7 +7,10 @@ import org.alireza.util.ApplicationContext;
 import org.alireza.util.PasswordGen;
 import org.alireza.util.Validation;
 
+import java.awt.event.WindowStateListener;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Scanner;
 
@@ -97,25 +100,25 @@ public class Menu {
     private void refundLoan() {
 
         int userChoice = 0;
-        Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
-        if (student.isGraduate()) {
+//        Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
+//        if (student.isGraduate()) {
 
-            System.out.println("1. Check paid installments");
-            System.out.println("2. Check unpaid installments");
-            System.out.println("3. pay your installments");
-            System.out.println("Please select a number");
+        System.out.println("1. Check paid installments");
+        System.out.println("2. Check unpaid installments");
+        System.out.println("3. pay your installments");
+        System.out.println("Please select a number");
 
-            userChoice = getValidNumber(3);
+        userChoice = getValidNumber(3);
 
-            switch (userChoice) {
-                case 1 -> showPaidInstallments();
-                case 2 -> showUnpaidInstallments();
-                case 3 -> payInstallments();
-                default -> System.out.println("Invalid number");
-            }
-        } else {
-            System.out.println("You can refund your loans whenever you are graduated.");
+        switch (userChoice) {
+            case 1 -> showPaidInstallments();
+            case 2 -> showUnpaidInstallments();
+            case 3 -> payInstallments();
+            default -> System.out.println("Invalid number");
         }
+//        } else {
+//            System.out.println("You can refund your loans whenever you are graduated.");
+//        }
     }
 
 
@@ -124,39 +127,142 @@ public class Menu {
         Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
         BankCard bankCard;
 
-        showUnpaidInstallments();
-        System.out.println("Which installment do you want to pay? (Please select installment number)");
-        while (!scanner.hasNextInt()) {
-            System.out.println("please enter a number");
-        }
-        long installmentId = scanner.nextInt();
-        scanner.nextLine();
-        try {
-            LoanInstallment installment = ApplicationContext.getLoanInstallmentService().findById(installmentId);
-            if (installment != null) {
+        LoanInstallment nearestLoanInstallment = nearestInstallment();
+//        System.out.println("Which installment do you want to pay? (Please select installment number)");
+//        while (!scanner.hasNextInt()) {
+//            System.out.println("please enter a number");
+//        }
+//        long installmentId = scanner.nextInt();
+//        scanner.nextLine();
+//        try {
+//            LoanInstallment installment = ApplicationContext.getLoanInstallmentService().findById(installmentId);
+            if (nearestLoanInstallment != null) {
                 bankCard = getBankCardInformation();
                 if (bankCard == null) {
                     System.out.println("Please enter a valid bank card");
                 } else if (ApplicationContext.getBankCardService().findByNumber(bankCard.getCardNumber()) == null) {
                     bankCard.setStudent(student);
-                    bankCard.setBalance((long) -installment.getPrice());
+                    bankCard.setBalance((long) -nearestLoanInstallment.getPrice());
                     ApplicationContext.getBankCardService().saveOrUpdate(bankCard);
-                    installment.setPaid(true);
-                    ApplicationContext.getLoanInstallmentService().saveOrUpdate(installment);
+                    nearestLoanInstallment.setPaid(true);
+                    ApplicationContext.getLoanInstallmentService().saveOrUpdate(nearestLoanInstallment);
                     System.out.println("your installment is paid, you can check your installments status in paid installments");
                 } else {
                     BankCard savedBankCard = ApplicationContext.getBankCardService().findByNumber(bankCard.getCardNumber());
-                    long newBalance = (long) (savedBankCard.getBalance() - installment.getPrice());
+                    long newBalance = (long) (savedBankCard.getBalance() - nearestLoanInstallment.getPrice());
                     savedBankCard.setBalance(newBalance);
                     ApplicationContext.getBankCardService().saveOrUpdate(savedBankCard);
-                    installment.setPaid(true);
-                    ApplicationContext.getLoanInstallmentService().saveOrUpdate(installment);
+                    nearestLoanInstallment.setPaid(true);
+                    ApplicationContext.getLoanInstallmentService().saveOrUpdate(nearestLoanInstallment);
                     System.out.println("your installment is paid, you can check your installment status in paid installments");
                 }
+            }else {
+                System.out.println("You dont have any installment to pay");
             }
-        } catch (Exception e) {
-            System.out.println("You enter the wrong id");
+//        } catch (Exception e) {
+//            System.out.println("You enter the wrong id");
+//        }
+    }
+    private LoanInstallment nearestInstallment(){
+
+        Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
+
+        Loan housingLoan, tuitionLoan, educationLoan;
+
+        System.out.println("Which loan do you want to pay?(select number)");
+        System.out.println("1. Housing loan");
+        System.out.println("2. Tuition loan");
+        System.out.println("3. Education loan");
+        System.out.println("4. Exit");
+
+        int userChoice = getValidNumber(4);
+        List<LoanInstallment> loanInstallmentList;
+        LocalDate loanInstallmentDate;
+        PersianDate loanInstallmentDatePersian;
+        LocalDate today = LocalDate.now();
+        long minDifDays = Long.MAX_VALUE;
+        LoanInstallment nearestInstallment = null;
+
+        switch (userChoice) {
+            case 1 -> {
+                try {
+                    housingLoan = ApplicationContext.getLoanService().findByStudentId(student.getId(), LoanType.HOUSING_LOAN);
+                    if (housingLoan == null) {
+                        System.out.println("You dont have housing loan");
+                    } else {
+                        loanInstallmentList = ApplicationContext.getLoanInstallmentService().paidInstallments(false, housingLoan.getId());
+                        System.out.println("Your nearest installment for your housing loan to pay is:");
+                        for (LoanInstallment loanInstallment : loanInstallmentList) {
+                            long diffInDays = ChronoUnit.DAYS.between(today, loanInstallment.getInstallmentDate());
+                            if (diffInDays >= 0 && diffInDays < minDifDays) {
+                                minDifDays = diffInDays;
+                                nearestInstallment = loanInstallment;
+                            }
+
+                        }
+                        loanInstallmentDate = nearestInstallment.getInstallmentDate();
+                        loanInstallmentDatePersian = PersianDate.ofGregorian(loanInstallmentDate);
+                        System.out.println(nearestInstallment.getId() + ". " + loanInstallmentDatePersian + "   "
+                                + (int) Math.ceil(nearestInstallment.getPrice()));
+                    }
+                }catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+            case 2 -> {
+                try {
+                    tuitionLoan = ApplicationContext.getLoanService().findByStudentId(student.getId(), LoanType.TUITION_LOAN);
+                    if (tuitionLoan == null) {
+                        System.out.println("You dont have tuition loan");
+                    } else {
+                        loanInstallmentList = ApplicationContext.getLoanInstallmentService().paidInstallments(false, tuitionLoan.getId());
+                        System.out.println("Your nearest installment for your tuition loan to pay is:");
+                        for (LoanInstallment loanInstallment : loanInstallmentList) {
+                            long diffInDays = ChronoUnit.DAYS.between(today, loanInstallment.getInstallmentDate());
+                            if (diffInDays >= 0 && diffInDays < minDifDays) {
+                                minDifDays = diffInDays;
+                                nearestInstallment = loanInstallment;
+                            }
+
+                        }
+                        loanInstallmentDate = nearestInstallment.getInstallmentDate();
+                        loanInstallmentDatePersian = PersianDate.ofGregorian(loanInstallmentDate);
+                        System.out.println(nearestInstallment.getId() + ". " + loanInstallmentDatePersian + "   "
+                                + (int) Math.ceil(nearestInstallment.getPrice()));
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            case 3 -> {
+                try {
+                    educationLoan = ApplicationContext.getLoanService().findByStudentId(student.getId(), LoanType.EDUCATION_LOAN);
+                    if (educationLoan == null) {
+                        System.out.println("You dont have education loan");
+                    } else {
+                        loanInstallmentList = ApplicationContext.getLoanInstallmentService().paidInstallments(false, educationLoan.getId());
+                        System.out.println("Your nearest installment for your education loan to pay is:");
+                        for (LoanInstallment loanInstallment : loanInstallmentList) {
+                            long diffInDays = ChronoUnit.DAYS.between(today, loanInstallment.getInstallmentDate());
+                            if (diffInDays >= 0 && diffInDays < minDifDays) {
+                                minDifDays = diffInDays;
+                                nearestInstallment = loanInstallment;
+                            }
+
+                        }
+                        loanInstallmentDate = nearestInstallment.getInstallmentDate();
+                        loanInstallmentDatePersian = PersianDate.ofGregorian(loanInstallmentDate);
+                        System.out.println(nearestInstallment.getId() + ". " + loanInstallmentDatePersian + "   "
+                                + (int) Math.ceil(nearestInstallment.getPrice()));
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            case 4 -> System.out.println();
+            default -> System.out.println("invalid number");
         }
+
+        return nearestInstallment;
+
     }
 
 
@@ -317,14 +423,23 @@ public class Menu {
         }
     }
 
-    private void getLoan() {
+    public void getLoan() {
         int userChoice = 0;
+        LocalDate startDateWinterSemester = LocalDate.of(2024, 2, 14);
+        LocalDate endDateWinterSemester = LocalDate.of(2024, 2, 21);
+        LocalDate startDateAutomnSemester = LocalDate.of(2024, 10, 22);
+        LocalDate endDateAutomnSemester = LocalDate.of(2024, 10, 29);
+        LocalDate now = LocalDate.now();
 
         Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
-        if (student.isGraduate()){
+        if (student.isGraduate()) {
             System.out.println("you are graduated and you cant get loan");
+//        } else if (!(now.isAfter(startDateWinterSemester) &&
+//                now.isBefore(endDateWinterSemester))
+//        || (!(LocalDate.now().isAfter(startDateAutomnSemester) &&
+//                LocalDate.now().isBefore(endDateAutomnSemester)))) {
+//            System.out.println("you cannot get loan on this date");
         } else {
-
             System.out.println("Select a loan: ");
             System.out.println("1. Tuition loan");
             System.out.println("2. Education loan");
@@ -340,7 +455,6 @@ public class Menu {
                 case 4 -> System.out.println("good luck");
                 default -> System.out.println("invalid number");
             }
-
         }
     }
 
@@ -437,19 +551,19 @@ public class Menu {
 
         University university = new University();
 
-        String firstname = getInformation("firstname");
+        String firstname = getValidName("firstname");
         student.setFirstname(firstname);
         System.out.println();
 
-        String lastname = getInformation("lastname");
+        String lastname = getValidName("lastname");
         student.setLastname(lastname);
         System.out.println();
 
-        String fatherName = getInformation("fatherName");
+        String fatherName = getValidName("fatherName");
         student.setFatherName(fatherName);
         System.out.println();
 
-        String motherName = getInformation("motherName");
+        String motherName = getValidName("motherName");
         student.setMotherName(motherName);
         System.out.println();
 
@@ -497,7 +611,7 @@ public class Menu {
             student.setCity(city);
             System.out.println();
 
-            String universityName = getInformation("university name");
+            String universityName = getValidName("university name");
             university.setName(universityName);
             System.out.println();
 
@@ -710,10 +824,10 @@ public class Menu {
     private Spouse getSpouseInformation() {
         Student student = ApplicationContext.getStudentService().findById(SecurityContext.id);
 
-        String firstname = getInformation("your spouse firstname");
-        String lastname = getInformation("your spouse lastname");
-        String fatherName = getInformation("ِyour spouse father name");
-        String motherName = getInformation("your spouse mother name");
+        String firstname = getValidName("your spouse firstname");
+        String lastname = getValidName("your spouse lastname");
+        String fatherName = getValidName("ِyour spouse father name");
+        String motherName = getValidName("your spouse mother name");
         String codeMelli = getValidCodeMelli("your spouse national id");
         LocalDate birthDate = getBirthDate("spouse birtDate");
 
@@ -975,7 +1089,7 @@ public class Menu {
                 System.out.println("Invalid expiry date format.");
 //                expiryString = scanner.nextLine();
             }
-        }while (true);
+        } while (true);
 
     }
 
@@ -1318,6 +1432,23 @@ public class Menu {
                 break;
             } else {
                 System.out.println("Please enter your " + information + ":");
+                input = scanner.nextLine().trim();
+            }
+        }
+
+        return input;
+    }
+
+    public String getValidName(String name){
+
+        System.out.println("Please enter your " + name + ":");
+        String input = scanner.nextLine().trim();
+
+        while (true) {
+            if (!input.isEmpty() && Validation.isValidFirstName(input)) {
+                break;
+            } else {
+                System.out.println("invalid input, Please enter your " + name + ":");
                 input = scanner.nextLine().trim();
             }
         }
