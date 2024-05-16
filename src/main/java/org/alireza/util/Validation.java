@@ -9,6 +9,7 @@ public class Validation {
     private static final Pattern STUDENT_CODE_PATTERN;
 
     private static final Pattern ENTRY_YEAR_PATTERN;
+    private static final Pattern FIRST_NAME_PATTERN;
 
     static {
 
@@ -16,8 +17,14 @@ public class Validation {
 
         ENTRY_YEAR_PATTERN = Pattern.compile("^139[0-9]|140[0-3]$");
 
+        FIRST_NAME_PATTERN = Pattern.compile("(?i)(^[a-z])((?![ .,'-]$)[a-z .,'-]){0,24}$");
+
     }
 
+    public static boolean isValidFirstName(String firstname){
+        Matcher matcher = FIRST_NAME_PATTERN.matcher(firstname);
+        return matcher.find();
+    }
     public static boolean isValidStudentCode(String studentCode){
         Matcher matcher = STUDENT_CODE_PATTERN.matcher(studentCode);
         return matcher.find();
